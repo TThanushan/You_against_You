@@ -6,7 +6,7 @@ __lua__
 --by wombart
 --made for 42jam#2
 
-local p_info = {x = 64, y = 64, tag = 'player', max_health = 3, move_speed = 2, 
+local p_info = {x = 64, y = 64, tag = 'player', max_health = 3, move_speed = 1, 
 money = 10, sprites = {idle ={1, 2}, running = {17, 18, 18, 19, 20, 20}}, 
 sounds = {running = 0}, weapon_info = {reload_time = 0, bullet_sprite = 49, 
 	name = 'pistol', attack_speed = 0.5, move_speed = 1000, damage = 1, 
@@ -19,7 +19,7 @@ local player
 local part = {}
 local g = 0.3
 local debugmode = false
-local ground_y = 64
+local ground_y = 80
 local shkx, shky = 0, 0
 local main_camera
 local gameobjects = {}
@@ -29,13 +29,13 @@ local colors = {black = 0, dark_blue = 1, dark_purple = 2, dark_green = 3,
 	brown = 4, dark_gray = 5, light_gray = 6, white = 7, red = 8, orange = 9,
 	yellow = 10, green = 11, blue = 12, indigo = 13, pink = 14, peach = 15, no_color}
 
-local ground_bridge = {x0 = -70, y0 = 65, x1 = 276, y1 = 95, width = 15, 
-	height = 10, light_color = colors.dark_purple, dark_color = colors.dark_blue}
+local ground_bridge = {x0 = -70, y0 = ground_y, x1 = 276, y1 = 128, width = 15, 
+	height = 0, light_color = colors.white, dark_color = colors.white}
 
-local platform1 = {x0=60, y0=45, x1=90, y1=53, hitboxy=40, 
+local platform1 = {x0=30, y0=55, x1=60, y1=65,
 	light_color = colors.white, dark_color = colors.light_gray}
-local platform2 = {x0=130, y0=45, x1=160, y1=53, hitboxy=40,
-	light_color = colors.white, dark_color = colors.light_gray}
+-- local platform2 = {x0=130, y0=45, x1=160, y1=53, hitboxy=40,
+-- 	light_color = colors.white, dark_color = colors.light_gray}
 
 function _init()
 	start()
@@ -47,42 +47,45 @@ function start()
 end
 
 function _update60()
- if game_state == 'start' then
+	if game_state == 'start' then
 
- elseif game_state == 'game' then
-  update_game()
- elseif game_state == 'gameover' then
+	elseif game_state == 'game' then
+		update_game()
+	elseif game_state == 'gameover' then
 
- end
+	elseif game_state == 'victory' then
+		update_victory()
+	end
 end
 
 function _draw()
- if game_state == 'start' then
- elseif game_state == 'game' then
-  draw_game()
- elseif game_state == 'gameover' then
+	if game_state == 'start' then
+	elseif game_state == 'game' then
+		draw_game()
+	elseif game_state == 'gameover' then
 
- end
+	elseif game_state == 'victory' then
+		draw_victory()
+	end
 
- if (debugmode) then
-  -- if btnp(5) then spawner.wave_number += 1 end
-  if btnp(5) then platform_button1.level += 1 end
+	if (debugmode) then
+	-- if btnp(5) then spawner.wave_number += 1 end
+	if btnp(5) then platform_button1.level += 1 end
+		local pos_x, pos_y = main_camera.x - 60, main_camera.y - 60
+		-- if (btn(5)) shake_v(1)
+		-- print('time:'..flr(time()/2),main_camera.x-64, main_camera.y-64, 8, 2)
+		-- print('e:'..spawner.alivee,main_camera.x-30, 30 +main_camera.y, 8, 2)
 
-  local pos_x, pos_y = main_camera.x - 60, main_camera.y - 60
-  -- if (btn(5)) shake_v(1)
-  -- print('time:'..flr(time()/2),main_camera.x-64, main_camera.y-64, 8, 2)
-  -- print('e:'..spawner.alivee,main_camera.x-30, 30 +main_camera.y, 8, 2)
-
-  -- print('mem_use:'..stat(0),main_camera.x+ 0, 30+main_camera.y, 8, 2)
-  print('obj:'..#gameobjects,  pos_x, pos_y, 10)
-  print('cpu:'..stat(1), pos_x, pos_y+5, 12)
-  print('fps:'..stat(7), pos_x, pos_y+10, 11, 3)
-  print('particles:'..#part, pos_x, pos_y+15, 8, 2)
-  print(time(), pos_x, pos_y+20, 8, 2)
-  print(camera_lerp_timer, pos_x, pos_y+25, 8, 2)
-  print(distance(main_camera, player), pos_x, pos_y+32, 8, 2)
-  print(btn(0), pos_x, pos_y+40, 8, 2)
- end
+		-- print('mem_use:'..stat(0),main_camera.x+ 0, 30+main_camera.y, 8, 2)
+		print('obj:'..#gameobjects,  pos_x, pos_y, 10)
+		print('cpu:'..stat(1), pos_x, pos_y+5, 12)
+		print('fps:'..stat(7), pos_x, pos_y+10, 11, 3)
+		print('particles:'..#part, pos_x, pos_y+15, 8, 2)
+		print(time(), pos_x, pos_y+20, 8, 2)
+		print(camera_lerp_timer, pos_x, pos_y+25, 8, 2)
+		print(distance(main_camera, player), pos_x, pos_y+32, 8, 2)
+		print(btn(0), pos_x, pos_y+40, 8, 2)
+	end
 end
 
 function update_game()
@@ -97,9 +100,10 @@ function draw_game()
 
 	-- cls(((time()/2%15))+1)
 	draw_background()
+	draw_part()
 	draw_map()
 	draw_all_gameobject()
-	draw_part()
+
 	draw_interface()
 	-- print(main_camera.get_tag())
 end
@@ -127,46 +131,36 @@ function draw_all_gameobject()
 end
 
 function draw_map()
-	
+	-- -- outline 
+	-- rect(shkx+ground_bridge.x0-1, shky+ground_bridge.y0-1,
+	-- 	shkx+ground_bridge.x1+1, shky+ground_bridge.y1+ground_bridge.height+1, 
+	-- 	colors.black)
 
-	-- outline 
-	rect(shkx+ground_bridge.x0-1, shky+ground_bridge.y0-1,
-		shkx+ground_bridge.x1+1, shky+ground_bridge.y1+ground_bridge.height+1, 
-		colors.black)
-
-	-- light part
-	rectfill(shkx+ground_bridge.x0,shky+ground_bridge.y0,shkx+ground_bridge.x1,
-		shky+ground_bridge.y0+ground_bridge.width, ground_bridge.light_color)
+	-- -- light part
+	-- rectfill(shkx+ground_bridge.x0,shky+ground_bridge.y0,shkx+ground_bridge.x1,
+	-- 	shky+ground_bridge.y0, ground_bridge.light_color)
 
 	-- dark part
-	rectfill(shkx+ground_bridge.x0, shky+ground_bridge.y0+ground_bridge.width,
-		shkx+ground_bridge.x1,shky+ground_bridge.y1+ground_bridge.height, ground_bridge.dark_color)
-
-
+	rectfill(shkx+ground_bridge.x0, shky+ground_bridge.y0 + 8,
+		shkx+ground_bridge.x1,shky+ground_bridge.y1, ground_bridge.dark_color)
 	-- platform 1
-	rect(shkx+platform1.x0-1, shky+platform1.y0-1, shkx+platform1.x1+1,
-		shky+platform1.y1+1, colors.black)
+	-- rectfill(shkx+platform1.x0, shky+platform1.y0+9, shkx+platform1.x1,
+	-- 	shky+platform1.y1+7, platform1.dark_color)
+end
 
-	-- light part
-	rectfill(shkx+platform1.x0, shky+platform1.y0, shkx+platform1.x1,
-		shky+platform1.y1, platform1.light_color)
+function update_victory()
+ if btn(5) then run() end
+ update_all_gameobject()
+end
 
-	-- dark part
-	rectfill(shkx+platform1.x0, shky+platform1.y0+5, shkx+platform1.x1,
-		shky+platform1.y1, platform1.dark_color)
-
-	-- platform 2
-	rect(shkx+platform2.x0-1, shky+platform2.y0-1, shkx+platform2.x1+1,
-		shky+platform2.y1+1, colors.black)
-
-	-- light part
-	rectfill(shkx+platform2.x0, shky+platform2.y0, shkx+platform2.x1,
-		shky+platform2.y1, platform2.light_color)
-
-	-- dark part
-	rectfill(shkx+platform2.x0, shky+platform2.y0+5, shkx+platform2.x1,
-		shky+platform2.y1, platform2.dark_color)
-
+function draw_victory()
+	cls(0)
+	draw_game()
+	if do_once == false then 
+		do_once=true
+	end
+	spe_print('you won !!!', 40 , main_camera.y-40-2*(cos(time())), 11, 3)
+	spe_print('❎ to restart', 40, main_camera.y, 10, 9)
 end
 
 function do_camera_shake()
@@ -193,9 +187,9 @@ end
 
 -- ##init
 function init_all_gameobject()
-	make_player()
+	make_character(false, 20, 65, 'player', 'bot')
+	make_character(true, 100, 65, 'bot', 'player')
 	main_camera = make_gameobject(128, 64, 'main_camera', {newposition = {x=0, y=0}})
-
 end
 
 function block_object_map_limit()
@@ -227,10 +221,8 @@ function distance(current, target)
 end
 
 function is_player_on_a_platform()
-	return (player.x >= platform1.x0 and player.x <= platform1.x1
-		and (player.y > platform1.hitboxy-3 and player.y < platform1.hitboxy+3))
-		or (player.x > platform2.x0 and player.x < platform2.x1
-		and (player.y > platform2.hitboxy-3 and player.y < platform2.hitboxy+3))
+	return (player.x >= platform1.x0 - 4 and player.x <= platform1.x1 + 4
+		and (player.y > platform1.y0 and player.y < platform1.y1 + 1))
 end
 
 function closest_obj(target, tag)
@@ -259,8 +251,10 @@ function whiteframe_update()
 end
 
 -- ##player
-function make_player()
-	player = make_gameobject(p_info.x, p_info.y, p_info.tag, {
+function make_character(is_bot, x, y, tag, target_tag)
+	player = make_gameobject(x, y, tag, {
+		is_bot = is_bot,
+		target_tag = target_tag,
 		current_health = p_info.max_health,
 		max_health = p_info.max_health,
 		c_sprite=1,
@@ -286,36 +280,6 @@ function make_player()
 		sprites = p_info.sprites,
 		experience=0,
 		move_speed = p_info.move_speed,
-		move = function(self)
-			if btn(0) then
-				self.x -= self.move_speed
-				self.state = 'running'
-				-- allow player to shoot to the right and walk to the left
-				-- if not btn(4) then
-					self.look_to_left = true 
-				-- end
-				-- self:walk_particle()
-			end
-			if btn(1) then
-				self.x += self.move_speed
-				self.state = 'running'
-				-- if not btn(4) then
-					self.look_to_left = false
-				-- end
-				-- self:walk_particle()
-			end
-			-- need to be falling to jump 
-			if btn(2) and self.grounded and self.dy >= 0 then
-				self:jump()
-
-			end
-			if not btn(0) and not btn(1) then
-				self.state = 'idle'
-			end
-			if btn(4) then
-				self:shoot(self.x+200, self.y)
-			end
-		end,
 		shoot = function(self, _x, _y)
 			if self.weapon_info.reload_time < time() then
 				local looking_direction = 1
@@ -338,25 +302,78 @@ function make_player()
 					self.weapon_info.collision_backoff,
 					self.weapon_info.move_speed,
 					self.weapon_info.bullet_sprite,
-					'bullet')
+					'bullet', target_tag)
 				shake_h(2)
 			end
 
 		end,
+		player_controller = function(self)
+			if btn(0) then
+				self.x -= self.move_speed
+				self.state = 'running'
+				-- allow player to shoot to the right and walk to the left
+				if not btn(4) then
+					self.look_to_left = true 
+				end
+				-- self:walk_particle()
+			end
+			if btn(1) then
+				self.x += self.move_speed
+				self.state = 'running'
+				if not btn(4) then
+					self.look_to_left = false
+				end
+				-- self:walk_particle()
+			end
+			-- need to be falling to jump 
+			if btn(2) and self.grounded and self.dy >= 0 then
+				self:jump()
+
+			end
+			if not btn(0) and not btn(1) then
+				self.state = 'idle'
+			end
+			if btn(4) then
+				self:shoot(self.x+200, self.y)
+			end
+		end,
+		bot_controller = function(self)
+
+		end,
 		update_sprite = function(self)
 			local table = self.sprites.idle
-			local speed = 8
+			local speed = 6
 
 			if self.state == 'running' then 
 				table = self.sprites.running
-				speed = self.move_speed*12
+				speed = self.move_speed*16
 			end
 
 			local n = flr(time()*speed%#table)+1
 			self.c_sprite = table[n]
 		end,
+		am_i_dead = function(self)
+			if (self.current_health <= 0) then
+				self.current_health = 0
+				self:death_event()
+			end
+			return true
+		end,
+		death_event = function(self)
+			if (self.is_bot) then
+				hit_part(self.x, self.y, {7, 6, 5})
+				game_state = 'victory'
+			else
+				game_state = 'gameover'
+			end
+			dust_part(self.x, self.y, 5+3, {colors.red}, 4)
+			dust_part(self.x+3, self.y, 5, {colors.dark_purple}, 4)
+			dust_part(self.x-3, self.y, 5, {colors.dark_blue}, 4)
+			self.sprites = {idle = {6}, running = {6}}
+			self:disable()
+		end,
 		draw_sprite = function(self)
-			outline_spr(self.c_sprite, self.x+shkx-4, self.y+shky, self.look_to_left)
+			-- outline_spr(self.c_sprite, self.x+shkx-4, self.y+shky, self.look_to_left, colors.white)
 			spr(self.c_sprite, self.x+shkx-4, self.y+shky, 1, 1, self.look_to_left)
 		end,
 		player_sounds = function (self)
@@ -386,7 +403,10 @@ function make_player()
 
 		end,
 		walk_particle = function(self)
-			if rnd()>0.5 and self.grounded then dust_part(self.x+4, self.y+10, 3,{6, 5}) end
+			if self.state == 'running' and rnd()>0.5 and
+			self.grounded then 
+				dust_part(self.x+4, self.y+10, 2,{colors.white, colors.dark_gray}) 
+			end
 		end,
 		do_physics=function(self)
 			if self.y > ground_y then
@@ -396,18 +416,17 @@ function make_player()
 
 			end
 			-- do gravity
-			if self.y <= ground_y and not is_player_on_a_platform() then
+			if self.y <= ground_y then
 				self.dy += g
 			else
 				if not self.grounded then
 					sfx(2)
 				end
-					if self.dy > 0 and is_player_on_a_platform() then
+					if self.dy > 0 then
 						self.grounded = true 
 						self.dy = 0 
 					end
 			end
-			
 			self.y += self.dy
 		end,
 		draw_health_rect = function (self)
@@ -429,13 +448,24 @@ function make_player()
 		end,
 		update = function (self)
 			self:player_sounds()
-			self:move()
-			self:update_sprite()
+			if (self.is_bot == true) then
+				self:bot_controller()
+			else
+				self:player_controller()
+			end
+			if (self.active) then
+				self:am_i_dead()
+				self:update_sprite()
+				self:walk_particle()
+			end
 			self:do_physics()
 		end,
 		draw = function(self)
 			self:draw_sprite()
-			self:draw_health_rect()
+			if (self.active) then
+				-- self:draw_health_rect()
+				self:draw_health_rect()
+			end
 		end
 
 	})
@@ -459,11 +489,12 @@ function make_muzzle_flash(x, y, radius, muzzle_color, duration)
 end
 
 -- ##bullet
-function make_bullet(x, y, direction, damage, backoff, move_speed, sprite, tag)
+function make_bullet(x, y, direction, damage, backoff, move_speed, sprite, tag, target_tag)
   local bullet = make_gameobject (x, y, tag, {
 	damage=damage,
 	move_speed=move_speed,
 	sprite=sprite,
+	target_tag = target_tag,
 	range = 10,
 	backoff = backoff,
 	direction=direction,
@@ -483,7 +514,7 @@ function make_bullet(x, y, direction, damage, backoff, move_speed, sprite, tag)
 		self:disable()
 	end,
 	enemy_collision_check = function (self)
-		local enemy = closest_obj(self, 'enemy')
+		local enemy = closest_obj(self, self.target_tag)
 		if enemy != nil and distance(self, enemy) < self.range then
 			-- sfx(1)            
 			enemy:take_damage(self.damage)
@@ -582,6 +613,7 @@ function make_gameobject(x, y, tag, properties, draw_layer)
 			return self.tag
 		end,
 		disable = function(self)
+			self.active = false
 			del(gameobjects, self)
 		end,
 		draw = function(self)
@@ -714,13 +746,13 @@ end
 
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000700000000000000070000000000000000000000000000067000000444999000000000000000000000000000000000000000000000000000000000
-0070070000ccc0000007000000888000000000000000000000000000066700000466779000000000000000000000000000000000000000000000000000000000
-000770000c1c100000ccc00008282000000000000000000000000000006670000466779000000000000000000000000000000000000000000000000000000000
-000770000a010a000c1c10000a020a00000000000000000000000000000667900466779000000000000000000000000000000000000000000000000000000000
-00700700000c00000a0c0a0000080000000000000000000000000000000069000046790000000000000000000000000000000000000000000000000000000000
-0000000000c0c00000c0c00000808000000000000000000000000000000090900004900000000000000000000000000000000000000000000000000000000000
-0000000000a0a00000a0a00000a0a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000700000000000000070000000000000000000000666600067000000444999000000000000000000000000000000000000000000000000000000000
+0070070000ccc0000007000000888000000000000000000006665660066700000466779000000000000000000000000000000000000000000000000000000000
+000770000c1c100000ccc00008282000000000000000000006655560006670000466779000000000000000000000000000000000000000000000000000000000
+000770000a010a000c1c10000a020a00000000000000000008665660000667900466779000000000000000000000000000000000000000000000000000000000
+00700700000c00000a0c0a0000080000000000000000000006665680000069000046790000000000000000000000000000000000000000000000000000000000
+0000000000c0c00000c0c00000808000000000000000000006885660000090900004900000000000000000000000000000000000000000000000000000000000
+0000000000a0a00000a0a00000a0a000000000000000000008885880000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000700000000000000000000000000000000000000000000099000000000000009900000000000000000000000000000000000000000000
 000000000007000000cccc0000000000000070000000000000000000009900000599900000990000059990000000000000000000000000000000000000000000
 0000000000ccc0000a01c1000a00700000cccc000000000000000000059990005544000005999000554400000000000000000000000000000000000000000000
@@ -729,21 +761,21 @@ __gfx__
 00000000000c0000000c0c00000010000000c000000000000000000055b366775666300055b36677566600000000000000000000000000000000000000000000
 0000000000c0c00000a0a0000000c000000c0c000000000000000000566600000030000056660000000300000000000000000000000000000000000000000000
 0000000000a0a00000000000000c0c0000ac0a000000000000000000030300000000000000030000000000000000000000000000000000000000000000000000
-00000000000000000099000000000000009900000000000000000000000000000099000000990000009900000099000000990000000000000000000000000000
-00000000000000000599900000990000059990000000000000000000009900000599900005999000059990000599900005999000000000000000000000000000
-00000000000000005544000005999000554400000000000000000000059990005544000055440000554400005544000055440000000000000000000000000000
-000000000000000055bb77705544000055bb777000000000000000005544000055bb000055bb000055bb777055bb000055bb0000000000000000000000000000
-000000000000000055b3667755bb777055b36677000000000000000055bb777055b3700055b3700055b3667755b3700055b37000000000000000000000000000
-00000000000000005666300055b3667756660000000000000000000055b366775666670056666700566600005666670056666700000000000000000000000000
-00000000000000000030000056660000000300000000000000000000566600000033067000330670003300000033067000330670000000000000000000000000
-00000000000000000000000000030000000000000000000000000000003300000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000099000000990000009900000099000000990000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000009900000599900005999000059990000599900005999000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000059990005544000055440000554400005544000055440000000000000000000000000000
+000000000000000000000000000000000000000000000000000000005544000055bb000055bb000055bb777055bb000055bb0000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000055bb777055b3700055b3700055b3667755b3700055b37000000000000000000000000000
+0000000000000000000000000000000000000000000000000000000055b366775666670056666700566600005666670056666700000000000000000000000000
+00000000000000000000000000000000000000000000000000000000566600000033067000330670003300000033067000330670000000000000000000000000
+00000000000000000000000000000000000000000000000000000000003300000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000000557aa00777777000000000000000000000000000000000000000000777777000000000000000000000000000000000000000000000000000000000
-0000000005557aaa7777777700000000000000000000000000000000007777707777777700000000000000000000000000000000000000000000000000000000
-00000000555777aa7777777700000000000000000000000000000000077777777777777700000000000000000000000000000000000000000000000000000000
-00000000555777aa7777777700000000000000000000000000000000077777777777777700000000000000000000000000000000000000000000000000000000
-0000000005557aaa0777777000000000000000000000000000000000007777700777777000000000000000000000000000000000000000000000000000000000
-0000000000557aa00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000007777700777777000000000000000000000000000000000000000000777777000000000000000000000000000000000000000000000000000000000
+00000000077777777777777700000000000000000000000000000000007777707777777700000000000000000000000000000000000000000000000000000000
+00000000777777777777777700000000000000000000000000000000077777777777777700000000000000000000000000000000000000000000000000000000
+00000000777777777777777700000000000000000000000000000000077777777777777700000000000000000000000000000000000000000000000000000000
+00000000077777770777777000000000000000000000000000000000007777700777777000000000000000000000000000000000000000000000000000000000
+00000000007777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00003800000003800000380000033000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00003800000003300000380000038000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
