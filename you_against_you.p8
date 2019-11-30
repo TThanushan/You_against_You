@@ -12,7 +12,7 @@ sounds = {running = 0}, weapon_info = {reload_time = 0, bullet_sprite = 49,
 	name = 'pistol', attack_speed = 0.5, move_speed = 1000, damage = 1, 
 	backoff = 1, collision_backoff = 10, max_ammo = 5}}
 
-local map_limit_left_x, map_limit_right_x = 0, 300
+local map_limit_left_x, map_limit_right_x = 0, 126
 
 
 local player
@@ -187,8 +187,8 @@ end
 
 -- ##init
 function init_all_gameobject()
+	player = make_character(true, 100, 65, 'bot', 'player')
 	make_character(false, 20, 65, 'player', 'bot')
-	make_character(true, 100, 65, 'bot', 'player')
 	main_camera = make_gameobject(128, 64, 'main_camera', {newposition = {x=0, y=0}})
 end
 
@@ -272,6 +272,8 @@ function make_character(is_bot, x, y, tag, target_tag)
 			current_ammo = p_info.weapon_info.max_ammo, 
 			max_ammo = p_info.weapon_info.max_ammo},
 		state = 'idle',
+		bot_i = {state = 'loading', run_range = 20, next_shoot = 2},
+		bot_state = 'loading',
 		sfx_playing = false,
 		look_to_left = true,
 		grounded = true,
@@ -337,8 +339,22 @@ function make_character(is_bot, x, y, tag, target_tag)
 				self:shoot(self.x+200, self.y)
 			end
 		end,
+		bot_debug = function(self)
+			circ(self.x, self.y, 30, colors.red)
+		end,
 		bot_controller = function(self)
-
+			local direction = 0
+			local dist = distance(self, player)
+			if (dist < self.bot_i.run_range) then
+				-- move toward the player
+				if (self.x < player.x) then
+				direction = -1
+				end
+				direction = 1
+			end
+			self.x += self.move_speed * direction
+			self.state = 'running'
+			self.bot_state = 'moving'
 		end,
 		update_sprite = function(self)
 			local table = self.sprites.idle
@@ -397,7 +413,7 @@ function make_character(is_bot, x, y, tag, target_tag)
 			
 			self.dy = -4
 			shake_v(1)
-			sfx(0) 
+			sfx(0)
 			run_dust(self.x, self.y+13, 1)
 			run_dust(self.x, self.y+13, -1)
 
@@ -462,6 +478,10 @@ function make_character(is_bot, x, y, tag, target_tag)
 		end,
 		draw = function(self)
 			self:draw_sprite()
+			if (self.is_bot) then
+				self:bot_debug()
+				print(self.bot_state, self.x - 8, self.y - 10, colors.yellow)
+			end
 			if (self.active) then
 				-- self:draw_health_rect()
 				self:draw_health_rect()
