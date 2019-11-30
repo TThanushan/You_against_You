@@ -11,3 +11,7 @@ Player can shoot bullet, drop mine, summon meteorites etc.
 - Add summon meteorite ability
 - Add mines
 - Add IA
+
+# Preview 3
+
+![Imgur](https://i.imgur.com/SD2huJd.gif)
