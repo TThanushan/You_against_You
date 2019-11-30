@@ -12,6 +12,14 @@ Player can shoot bullet, drop mine, summon meteorites etc.
 - Add mines
 - Add IA
 
+# Preview 1
+
+![Imgur](https://imgur.com/WbPi24o.gif)
+
+# Preview 2
+
+![Imgur](https://imgur.com/WbPi24o.gif)
+
 # Preview 3
 
 ![Imgur](https://i.imgur.com/SD2huJd.gif)
