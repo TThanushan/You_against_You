@@ -17,3 +17,7 @@ Player can shoot bullet, drop mine, summon meteorites etc.
 # Preview 2
 
 ![Imgur](https://i.imgur.com/SD2huJd.gif)
+
+# Preview 3
+
+![Imgur](https://imgur.com/Og1OlDy.gif)
